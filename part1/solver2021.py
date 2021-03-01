@@ -15,6 +15,23 @@ COLS=5
 def printable_board(board):
     return "\n".join([ ('%3d ')*COLS  % board[j:(j+COLS)] for j in range(0, ROWS*COLS, COLS) ])
 
+compare_count = {0:0,1:0,2:0,3:0,4:0,5:0,6:0}
+
+class FringeItem:
+    def __init__(self, data, priority):
+        self.data = data
+        self.priority = priority
+    def __lt__(self, other):
+        if type(self.priority) is not tuple:
+            return self.priority < other.priority
+        for i in range(len(self.priority)):
+            if self.priority[i] != other.priority[i]:
+                compare_count[i] += 1
+                return self.priority[i] < other.priority[i]
+
+        compare_count[len(self.priority)] += 1
+        return True
+
 def shift(state, cells):
     temp = state[cells[0]]
     for i in range(len(cells) - 1):
@@ -143,6 +160,8 @@ def get_mismatches_for_cell(state, index):
 
     return (row_mismatches, col_mismatches)
 
+def get_total_mismatches(state):
+    return sum([sum(get_mismatches_for_cell(state, i)) for i in range(ROWS * COLS)])
 
 def get_mismatch_coefficient(state):
     col_mismatches = row_mismatches = 0
@@ -158,14 +177,26 @@ higher_counts = 0
 def get_h(state):
     global higher_counts
     manhatn =  max([get_manhatten_distance(i, state[i] - 1) for i in range(len(state))])
-    mismatches = get_mismatch_coefficient(state)
+    # mismatches = get_mismatch_coefficient(state)
 
-    if manhatn > mismatches:
-        higher_counts +=1
-    else:
-        higher_counts -=1
+    # if manhatn > mismatches:
+    #     higher_counts +=1
+    # else:
+    #     higher_counts -=1
 
     return manhatn
+
+def get_max_distance_node_count(state):
+    max_count = 0
+    max_distance = 0
+    for i in range(ROWS * COLS):
+        dist = get_manhatten_distance(i, state[i] - 1)
+        if dist > max_distance:
+            max_distance = dist
+            max_count = 1
+        elif dist == max_distance:
+            max_count += 1
+    return max_count
 
 def solve(initial_board):
     """
@@ -177,8 +208,14 @@ def solve(initial_board):
     4. You can assume that all test cases will be solvable.
     5. The current code just returns a dummy solution.
     """
+
+    if type(initial_board[0]) is list:
+        initial_board = [j for i in initial_board for j in i]
+
     que = PriorityQueue()
-    que.put((0, 0,initial_board, ""))
+
+    # que.put((0, 0,initial_board, ""))
+    que.put(FringeItem((0, initial_board, ""), (0, 0)))
 
     state_count = 1
 
@@ -196,15 +233,18 @@ def solve(initial_board):
             print("max_hs: " + str(max_hs))
             print("min_hs: " + str(min_hs))
             print("avg_hs: " + str(total_hs/count_hs))
+            print("compare stats: " + str(compare_count))
 
         state_count = state_count + 1
-        elem = que.get()
-        if is_goal(elem[2]):
-            if elem[3] == '':
+
+        fringe_item = que.get()
+        elem = fringe_item.data
+        if is_goal(elem[1]):
+            if elem[2] == '':
                 return []
             print("Total states visited: " + str(state_count))
-            return elem[3].split(" ")
-        for succ in successors(elem[2]):
+            return elem[2].split(" ")
+        for succ in successors(elem[1]):
             total_for_loop += 1
             a=get_h(succ[0])
             count_hs+=1
@@ -212,8 +252,9 @@ def solve(initial_board):
             max_hs=max(a,max_hs)
             min_hs=min(a,min_hs)
 
-            fs = a + elem[1]
-            que.put((fs, fs, succ[0], elem[3] + " " + succ[1]))
+            fs = a + elem[0]
+            # que.put((fs, fs, succ[0], elem[3] + " " + succ[1]))
+            que.put(FringeItem((a + elem[0], succ[0], elem[2] + " " + succ[1]), (a + elem[0], get_total_mismatches(succ[0]))))
 
 def make_move(state, move):
     dir = move[0]
@@ -253,7 +294,7 @@ if __name__ == "__main__":
 
     print("Solving...")
 
-    # start_state = make_moves(start_state, "R1 R1 R1 R1 L2 D3 D3 U4 R3 L2 R3 L4 D5")
+    # start_state = make_moves(start_state, "L4 R1 L2 D3 D3 U4 R3 L2 R3 L4 D5")
 
     # start_state = make_moves(start_state, "R1 R1 R1 R1 L2 D3 D3 U4 R3 L2 R3")
 
