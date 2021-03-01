@@ -7,6 +7,14 @@
 
 
 '''
+###################################################################################################
+############################# IMPORTANT CHANGES ###################################################
+###################################################################################################
+####### Running solver2021.py alone #######
+
+To run solver2021.py through terminal you will have to use test_board.txt. The command should look like 
+python3 solver2021.py test_board.txt 
+
 #### Testing instruction ####
 
 1. Copy paste both the files 'test_case.txt' and test_puzzle_a1.py in Part1 directory. 
@@ -77,11 +85,18 @@ def path_finder(board, path_):
       board = transpose_board(move_right(transpose_board(board), index))
   return board
 
+def get_map_as_list(map_):
+  ##Converts list of list into a single list for map
+    map_out = []
+    for row in map_:
+        map_out.extend(row)
+    return map_out
 
 
 ## Check the output of the puzzle
 def check_puzzle(mapX,path_corr):
-    logs= get_string_output(solver2021.solve(mapX))
+    logs= get_string_output(solver2021.solve(get_map_as_list(mapX)))
+    print(get_map_as_list(mapX))
     path_found = logs.strip()
     ans_move_dict = collect_moves(path_found)
     assert logs != None, "Output is Empty!"
