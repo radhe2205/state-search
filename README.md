@@ -1,6 +1,6 @@
 # Part 1
-1. Problem Formulation:
-   #a.# State space: 4x5 board with 20 tiles numbered 1-20
+##1. Problem Formulation:
+   ######a. State space: 4x5 board with 20 tiles numbered 1-20
    b. Successor function: Any legal move of a row or columns (1st, 3rd, and 5th column slide up, 2nd and 4th columns slide down, 1st and 3rd rows slide left, and 2nd and 4th rows
                           slide right)
    c. Edge weights: Each move of a tile has a cost of 1.
