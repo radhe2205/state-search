@@ -1,11 +1,14 @@
 # Part 1
-##1. Problem Formulation:
-   ######a. State space: 4x5 board with 20 tiles numbered 1-20
-   b. Successor function: Any legal move of a row or columns (1st, 3rd, and 5th column slide up, 2nd and 4th columns slide down, 1st and 3rd rows slide left, and 2nd and 4th rows
-                          slide right)
-   c. Edge weights: Each move of a tile has a cost of 1.
-   d. Heuristic function: The heuristic being used to assign a priority to the successors in the priority queue, is the maximum of the minimum moves required for a tile to reach
-                          its goal state. The states with the lowest h(s) are given highest priority.
+## 1. Problem Formulation:
+   ###### a. State space: 
+             4x5 board with 20 tiles numbered 1-20
+   ###### b. Successor function: 
+             Any legal move of a row or columns (1st, 3rd, and 5th column slide up, 2nd and 4th columns slide down, 1st and 3rd rows slide left, and 2nd and 4th rows slide right)
+   ###### c. Edge weights: 
+             Each move of a tile has a cost of 1.
+   ###### d. Heuristic function: 
+             The heuristic being used to assign a priority to the successors in the priority queue, is the maximum of the minimum moves required for a tile to reach its goal
+             state. The states with the lowest h(s) are given highest priority.
 2. How it works:
 3. Problems faced and design decisions:
 
