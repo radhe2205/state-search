@@ -26,7 +26,12 @@
   ##### d. Heuristic function: 
             If two successor states have the same cost, then a heuristic is used to determine which successor has a smaller distance to the goal city based on the difference
             between latitude and longitude. The successor with the smaller distance is the one chosen by the agent. 
-### 2. How it works: 
+### 2. How it works:
+            The program begins by placing the first state in the priority queue into the fringe. The program checks if the current state is the goal city. If it is, then the
+            goal state is translated into route taken, total miles, total hours, and total accidents. If it is not the goal state, then each path (city) in the current state
+            is checked to see if it has already been visited by the agent. If it has been visited before, then the program moves to the next path in the state. If the path has
+            not been visited previously, then it is added to the fringe as the cost function defined by the user. It is also added to the visited cities list to prevent
+            returning to the same location. The process continues until the goal city is found by the agent. 
 ### 3. Problems faced and design decisions:
 
 # Part 3
