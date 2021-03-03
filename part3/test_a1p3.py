@@ -11,8 +11,6 @@ For final grading we will be using more complex test cases.
 import pytest
 import numpy as np
 import assign
-
-import multiprocessing
 import time
 time_ = 100
 
@@ -22,7 +20,7 @@ def get_solution(test_file):
 	result = []
 	for i in assign.solver(test_file):
 		result.append([i['assigned-groups'],i['total-cost']])
-		if time.time() - start_time >= 100 :
+		if time.time() - start_time >= time_ :
 			break
 
 	return result
@@ -51,17 +49,17 @@ def check_solution(test_file,result,threshold = float('inf')):
 
 	assert result[1] <= threshold, 'The cost is incorrect, it could be better'
 
-
+@pytest.mark.timeout(time_+5)
 def test_case_1():
 	test_file = 'test1.txt'
 	check_solution('test1.txt',get_solution(test_file)[-1],10)
 
-
+@pytest.mark.timeout(time_+5)
 def test_case_2():
 	test_file = 'test2.txt'
 	check_solution(test_file,get_solution(test_file)[-1],15)
 
-
+@pytest.mark.timeout(time_+5)
 def test_case_3():
 	test_file = 'test3.txt'
 	check_solution(test_file,get_solution(test_file)[-1])  ## there is no threshold for this case. 
