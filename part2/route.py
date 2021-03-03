@@ -151,16 +151,9 @@ def get_route(start, end, cost):
             if segment.dest in visited_cities:
                 continue
             insert_in_fringe(fringe, segment, elem, cost)
-            # fringe.put(PriorityElem((elem.current_state[0] + 1, segment.dest, elem.current_state[2] + [segment])))
             visited_cities.append(segment.dest)
 
-    return {
-        "total-segments": 0,
-        "total-miles": 0,
-        "total-hours": 0,
-        "total-expected-accidents": 0,
-        "route-taken": []
-    }
+    return get_path_segments([])
 
     # route_taken = [("Martinsville,_Indiana","IN_37 for 19 miles"), # 52
     #                ("Jct_I-465_&_IN_37_S,_Indiana","IN_37 for 25 miles"), #52
