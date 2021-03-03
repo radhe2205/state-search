@@ -13,9 +13,10 @@ from queue import PriorityQueue
 USER_PREFERENCES = {}
 
 class PriorityElement:
-    def __init__(self, cost, groups):
+    def __init__(self, cost, groups, complain_map):
         self.cost = cost
         self.groups = groups
+        self.complain_map = complain_map
     def __lt__(self, other):
         return self.cost < other.cost
 
@@ -61,10 +62,12 @@ def read_user_preferences(input_file):
             userid, team, blocked = line.strip().split(" ")
             USER_PREFERENCES[userid] = UserPreferences(userid, team, blocked)
 
-def successors(state):
+def successors(state, complain_map):
     new_states = []
+    state_cost = sum(complain_map.values())
+
     start_index = 0
-    for i in range(len(state)-1, -1 ,-1):
+    for i in range(len(state)-1, -1 ,-1): # Reverse search yields bad results.
         if len(state[i]) > 1:
             start_index = i
             break
@@ -75,9 +78,14 @@ def successors(state):
         for j in range(i+1, len(state)):
             if [*USER_PREFERENCES.keys()].index(state[j][0]) > last_elem_index:
                 new_state = copy.deepcopy(state)
+                new_complain_map = copy.deepcopy(complain_map)
                 new_state.pop(j)
                 new_state[i].extend(state[j])
-                new_states.append(new_state)
+
+                for userid in new_state[i]:
+                    new_complain_map[userid] = calculate_cost(userid, new_state)
+
+                new_states.append((new_state, new_complain_map))
 
     return new_states
 
@@ -107,20 +115,21 @@ def solver(input_file):
 
     fringe = PriorityQueue()
     initial_groups = [[i] for i in USER_PREFERENCES.keys()]
-    min_cost = sum([calculate_cost(i[0], i) for i in initial_groups])
+    complain_map = {i[0]:calculate_cost(i[0], i) for i in initial_groups}
+    min_cost = sum(complain_map.values())
     min_group = initial_groups
     min_state_number = 0
 
     yield ({"assigned-groups": get_user_groups(min_group), "total-cost": min_cost})
 
-    fringe.put(PriorityElement(min_cost, initial_groups))
+    fringe.put(PriorityElement(min_cost, initial_groups, complain_map))
 
     total_state_count = 0
     while not fringe.empty():
         total_state_count += 1
         priority_elem:PriorityElement = fringe.get()
 
-        for succ in successors(priority_elem.groups):
+        for (succ, complain_map) in successors(priority_elem.groups, complain_map):
             if check_visited(visited_states, succ):
                 pass
                 # print("Duplicate state: " + str(succ) + " with predecessor: " + str(priority_elem.groups))
@@ -128,14 +137,14 @@ def solver(input_file):
                 visited_states.append(succ)
 
             # Match the count to know if all the states are being generated.
-            succ_cost = sum([calculate_cost(i, group) for group in succ for i in group])
+            succ_cost = sum(complain_map.values())
             if succ_cost < min_cost:
                 min_cost = succ_cost
                 min_group = succ
                 min_state_number = total_state_count
                 print("Min state number: " + str(total_state_count))
                 yield({"assigned-groups": get_user_groups(min_group), "total-cost": min_cost})
-            fringe.put(PriorityElement(succ_cost, succ))
+            fringe.put(PriorityElement(succ_cost, succ, complain_map))
 
     print("Total state count: " + str(total_state_count))
     print("Total distinct states: " + str(len(visited_states)))
