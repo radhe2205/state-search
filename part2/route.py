@@ -15,6 +15,8 @@ CITIES = {}
 
 GOAL_CITY = ""
 MAX_SEGMENT_LENGTH = 0
+MAX_SPEED_HIGHWAY = 0
+ENABLE_HEURISTIC = False
 
 class Segment:
     def __init__(self, dest, length, speed, name):
@@ -37,12 +39,37 @@ class City:
     def add_road(self, segment: Segment):
         self.paths.append(segment)
 
+# Code start: Taken from https://stackoverflow.com/questions/19412462/getting-distance-between-two-points-based-on-latitude-longitude
+from math import sin, cos, sqrt, atan2, radians
+def distance_lat_lng(lat_lng1, lat_lng2):
+
+    R = 6373.0
+    lat1 = radians(lat_lng1[0])
+    lon1 = radians(lat_lng1[1])
+    lat2 = radians(lat_lng2[0])
+    lon2 = radians(lat_lng2[1])
+
+    dlon = lon2 - lon1
+    dlat = lat2 - lat1
+
+    a = sin(dlat / 2)**2 + cos(lat1) * cos(lat2) * sin(dlon / 2)**2
+    c = 2 * atan2(sqrt(a), sqrt(1 - a))
+
+    return R * c * 0.621371
+# Code end: Taken from https://stackoverflow.com/questions/19412462/getting-distance-between-two-points-based-on-latitude-longitude
+
 class PriorityElem:
     def __init__(self, current_state):
         self.current_state = current_state
 
     def __lt__(self, other):
-        return self.current_state[0] < other.current_state[0]
+        if not ENABLE_HEURISTIC:
+            if self.current_state[0] == other.current_state[0] \
+                    and CITIES[self.current_state[2]].lat is not None \
+                    and CITIES[other.current_state[2]].lat is not None:
+                return get_distance_from_goal(self.current_state[2]) < get_distance_from_goal(other.current_state[2])
+
+        return self.current_state[0] + self.current_state[1] < other.current_state[0] + other.current_state[1]
 
 def read_cities():
     global CITIES
@@ -56,7 +83,7 @@ def read_cities():
     CITIES = nodes
 
 def read_roads():
-    global CITIES, MAX_SEGMENT_LENGTH
+    global CITIES, MAX_SEGMENT_LENGTH, MAX_SPEED_HIGHWAY
     with open("road-segments.txt") as file:
         for line in file:
             if not line:
@@ -70,6 +97,8 @@ def read_roads():
             CITIES[attribs[1]].add_road(Segment(*(attribs[:1] + attribs[2:])))
             if float(attribs[2]) > MAX_SEGMENT_LENGTH:
                 MAX_SEGMENT_LENGTH = float(attribs[2])
+            if float(attribs[3]) > MAX_SPEED_HIGHWAY:
+                MAX_SPEED_HIGHWAY = float(attribs[3])
 
 def get_accident_on_road_segment(segment: Segment):
     if segment.name[:2] == "I-":
@@ -94,23 +123,65 @@ def get_path_segments(segments):
             "route-taken": route_taken}
 
 def get_path_for_segment_state(state):
-    return get_path_segments(state[2])
+    return get_path_segments(state[3])
 
 def successor_segment(city):
     return CITIES[city].paths
 
-def insert_in_fringe(fringe, segment, previous_elem: PriorityElem, type):
+def get_distance_from_goal(city):
+    if not ENABLE_HEURISTIC:
+        return 0
+    if city == GOAL_CITY:
+        return 0
+    if CITIES[city].lat is not None and CITIES[city].lng is not None:
+        return distance_lat_lng((CITIES[city].lat, CITIES[city].lng), (CITIES[GOAL_CITY].lat, CITIES[GOAL_CITY].lng))
+    else:
+        max_goal_distance = 0
+        for segment in CITIES[city].paths:
+            if CITIES[segment.dest].lat is None or CITIES[segment.dest].lng is None:
+                continue
+            consistency_distance = get_distance_from_goal(segment.dest) - segment.length
+            if consistency_distance > max_goal_distance:
+                max_goal_distance = consistency_distance
+        return max_goal_distance
+
+def h_segment(city):
+    goal_distance = get_distance_from_goal(city)
+    return goal_distance / MAX_SEGMENT_LENGTH
+
+def h_time(city):
+    goal_distance = get_distance_from_goal(city)
+    return goal_distance / MAX_SPEED_HIGHWAY
+
+def h_safe(city):
+    goal_distance = get_distance_from_goal(city)
+    return goal_distance/1000000
+
+def h_s(city, type):
     if type == "segments":
-        fringe.put(PriorityElem((previous_elem.current_state[0] + 1, segment.dest, previous_elem.current_state[2] + [segment])))
+        return h_segment(city)
     if type == "distance":
-        fringe.put(PriorityElem((previous_elem.current_state[0] + segment.length, segment.dest, previous_elem.current_state[2] + [segment])))
+        return get_distance_from_goal(city)
     if type == "time":
-        fringe.put(PriorityElem((previous_elem.current_state[0] + segment.length/segment.speed, segment.dest, previous_elem.current_state[2] + [segment])))
+        return h_time(city)
     if type == "safe":
-        fringe.put(PriorityElem((previous_elem.current_state[0] + get_accident_on_road_segment(segment), segment.dest, previous_elem.current_state[2] + [segment])))
+        return h_safe(city)
+
+def insert_in_fringe(fringe, segment, previous_elem: PriorityElem, type):
+    f_s = previous_elem.current_state[0]
+    path = previous_elem.current_state[3] + [segment]
+
+    if type == "segments":
+        fringe.put(PriorityElem((f_s + 1, h_s(segment.dest, type), segment.dest, path)))
+    if type == "distance":
+        fringe.put(PriorityElem((f_s + segment.length, h_s(segment.dest, type), segment.dest, path)))
+    if type == "time":
+        fringe.put(PriorityElem((f_s + segment.length/segment.speed, h_s(segment.dest, type), segment.dest, path)))
+    if type == "safe":
+        fringe.put(PriorityElem((f_s + get_accident_on_road_segment(segment), h_s(segment.dest, type), segment.dest, path)))
 
 def get_route(start, end, cost):
-    
+
     """
     Find shortest driving route between start city and end city
     based on a cost function.
@@ -135,15 +206,15 @@ def get_route(start, end, cost):
     GOAL_CITY = end
 
     fringe = PriorityQueue()
-    fringe.put(PriorityElem((0, start, [])))
+    fringe.put(PriorityElem((0, h_s(start, cost), start, [])))
 
     visited_cities = [start]
 
     while not fringe.empty():
         elem = fringe.get()
-        if elem.current_state[1] == end:
+        if elem.current_state[2] == end:
             return get_path_for_segment_state(elem.current_state)
-        for segment in successor_segment(elem.current_state[1]):
+        for segment in successor_segment(elem.current_state[2]):
             if segment.dest in visited_cities:
                 continue
             insert_in_fringe(fringe, segment, elem, cost)
