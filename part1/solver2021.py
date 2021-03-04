@@ -294,9 +294,10 @@ if __name__ == "__main__":
 
     print("Solving...")
 
-    # start_state = make_moves(start_state, "L4 R1 L2 D3 D3 U4 R3 L2 R3 L4 D5")
+    # start_state = make_moves(start_state, "D2 D2 D2 R2 R2 R2 R2 L4 R1 L2 D3 D3 U4 R3 L2 R3 L4 D5")
+    start_state = make_moves(start_state, "D2 D2 D2 R2 R2 R2 R2 R1 D1 D5 L4 U2 L2 D3 D3 U4 R3 L2 R3")
 
-    # start_state = make_moves(start_state, "R1 R1 R1 R1 L2 D3 D3 U4 R3 L2 R3")
+    print(printable_board(tuple(start_state)))
 
     route = solve(start_state)
 

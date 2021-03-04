@@ -84,8 +84,8 @@ def successors(state, complain_map):
         last_elem_index = [*USER_PREFERENCES.keys()].index(state[i][len(state[i]) - 1])
         for j in range(i+1, len(state)):
             if [*USER_PREFERENCES.keys()].index(state[j][0]) > last_elem_index:
-                new_state = copy.deepcopy(state)
-                new_complain_map = copy.deepcopy(complain_map)
+                new_state = [x[:] for x in state]
+                new_complain_map = {x:complain_map[x] for x in complain_map.keys()}
                 new_state.pop(j)
                 new_state[i].extend(state[j])
 
