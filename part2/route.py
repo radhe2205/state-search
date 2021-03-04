@@ -14,6 +14,7 @@ from queue import PriorityQueue
 CITIES = {}
 
 GOAL_CITY = ""
+MAX_SEGMENT_LENGTH = 0
 
 class Segment:
     def __init__(self, dest, length, speed, name):
@@ -36,20 +37,12 @@ class City:
     def add_road(self, segment: Segment):
         self.paths.append(segment)
 
-def diff_lat_lng(src, dest):
-    if CITIES[src].lat is None or CITIES[src].lng is None or CITIES[dest].lat is None or CITIES[dest].lng is None:
-        return 0
-    return abs(CITIES[src].lat - CITIES[dest].lat) + abs(CITIES[src].lng - CITIES[dest].lng)
-
 class PriorityElem:
     def __init__(self, current_state):
         self.current_state = current_state
 
     def __lt__(self, other):
-        if self.current_state[0] != other.current_state[0]:
-            return self.current_state[0] < other.current_state[0]
-        return diff_lat_lng(self.current_state[1], GOAL_CITY) < diff_lat_lng(other.current_state[1], GOAL_CITY)
-
+        return self.current_state[0] < other.current_state[0]
 
 def read_cities():
     global CITIES
@@ -63,6 +56,7 @@ def read_cities():
     CITIES = nodes
 
 def read_roads():
+    global CITIES, MAX_SEGMENT_LENGTH
     with open("road-segments.txt") as file:
         for line in file:
             if not line:
@@ -74,6 +68,8 @@ def read_roads():
                 CITIES[attribs[1]] = City(attribs[1], "", "")
             CITIES[attribs[0]].add_road(Segment(*attribs[1:]))
             CITIES[attribs[1]].add_road(Segment(*(attribs[:1] + attribs[2:])))
+            if float(attribs[2]) > MAX_SEGMENT_LENGTH:
+                MAX_SEGMENT_LENGTH = float(attribs[2])
 
 def get_accident_on_road_segment(segment: Segment):
     if segment.name[:2] == "I-":
