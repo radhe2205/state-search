@@ -19,12 +19,13 @@ def handler(signum, frame):
 	raise Exception("timeout")
 
 def get_solution(test_file):
-	results = []
+	results = [[]]
 	try:
 		for i in assign.solver(test_file):
 			results.append([i['assigned-groups'],i['total-cost']])
 	except Exception:
 		return results
+	return results
 
 def check_names(test_file,result):
 	names_ = [j for i in [i.split('-') for i in result[0]] for j in i]
@@ -36,32 +37,26 @@ def check_names(test_file,result):
 	return (original_names==names and len(names)==len(original_names))
 
 def check_solution(test_file,result,threshold = float('inf')):
-	assert len(result) != 0, "No solution found"
+	assert len(result) != 0, "No solution yielded in {} seconds".format(str(time_))
 	assert result[-1] >= 0, "Score cannot be negative" 
 	assert check_names(test_file,result) == True, 'Everyone should be assigned to a team'
-	assert type(result[1]) in (int,float), 'TypeError'
+	assert type(result[1]) in (int,float), 'Cost should be of type int or float'
 	assert result[1] <= threshold, 'The cost is incorrect, it could be better'
 
 def test_case_1():
 	signal.signal(signal.SIGALRM, handler)
 	signal.alarm(time_)
 	test_file = 'test1.txt'
-	results=[[]]
-	results+=get_solution(test_file)
-	check_solution(test_file,results[-1],10) 
+	check_solution(test_file,get_solution(test_file)[-1],10) 
 
 def test_case_2():
 	signal.signal(signal.SIGALRM, handler)
 	signal.alarm(time_)
 	test_file = 'test2.txt'
-	results=[[]]
-	results+=get_solution(test_file)
-	check_solution(test_file,results[-1],15) 
+	check_solution(test_file,get_solution(test_file)[-1],15) 
 
 def test_case_3():
 	signal.signal(signal.SIGALRM, handler)
 	signal.alarm(time_)
 	test_file = 'test3.txt'
-	results=[[]]
-	results+=get_solution(test_file)
-	check_solution(test_file,results[-1])  ## there is no threshold for this case. 
+	check_solution(test_file,get_solution(test_file)[-1])  ## there is no threshold for this case. 
