@@ -243,7 +243,7 @@ def solve(initial_board):
             if elem[2] == '':
                 return []
             print("Total states visited: " + str(state_count))
-            return elem[2].split(" ")
+            return elem[2].strip().split(" ")
         for succ in successors(elem[1]):
             total_for_loop += 1
             a=get_h(succ[0])
@@ -254,7 +254,7 @@ def solve(initial_board):
 
             fs = a + elem[0]
             # que.put((fs, fs, succ[0], elem[3] + " " + succ[1]))
-            que.put(FringeItem((a + elem[0], succ[0], elem[2] + " " + succ[1]), (a + elem[0], get_total_mismatches(succ[0]))))
+            que.put(FringeItem((elem[0] + 1, succ[0], elem[2] + " " + succ[1]), (elem[0] + 1 + a, get_total_mismatches(succ[0]))))
 
 def make_move(state, move):
     dir = move[0]
@@ -295,7 +295,9 @@ if __name__ == "__main__":
     print("Solving...")
 
     # start_state = make_moves(start_state, "D2 D2 D2 R2 R2 R2 R2 L4 R1 L2 D3 D3 U4 R3 L2 R3 L4 D5")
-    start_state = make_moves(start_state, "D2 D2 D2 R2 R2 R2 R2 R1 D1 D5 L4 U2 L2 D3 D3 U4 R3 L2 R3")
+    # start_state = make_moves(start_state, "D2 D2 D2 R2 R2 R2 R2 R1 D1 D5 L4 U2 L2 D3 R3 D3 U4 L2 R3")
+    # start_state = make_moves(start_state, "D2 D2 D2 R2 R2 R2 R2 R3 D3 U4 L2 R3 R1 D1 D5 L4 U2 L2 D3")
+    start_state = make_moves(start_state, "D2 D2 D2 R2 R2 R2 R2 R3 D3 U4 L2 R3 R1 D1 D5 L4 U2")
 
     print(printable_board(tuple(start_state)))
 
