@@ -182,6 +182,7 @@ def insert_in_fringe(fringe, segment, previous_elem: PriorityElem, type, fringe_
     if segment.dest in fringe_cities and fringe_cities[segment.dest] < (f_s + edge_weight + heuristic_val):
         return
     fringe.put(PriorityElem((f_s + edge_weight, heuristic_val, segment.dest, path)))
+    fringe_cities[segment.dest] = f_s + edge_weight + heuristic_val
     return (f_s + edge_weight, heuristic_val)
 
 def get_route(start, end, cost):
