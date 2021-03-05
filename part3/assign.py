@@ -13,18 +13,20 @@ from queue import PriorityQueue
 USER_PREFERENCES = {}
 
 class PriorityElement:
-    def __init__(self, cost, groups, complain_map):
+    def __init__(self, total_steps, cost, groups, complain_map):
+        self.total_steps = total_steps
         self.cost = cost
         self.groups = groups
         self.complain_map = complain_map
     def __lt__(self, other):
-        if self.cost != other.cost:
+        # if (self.cost + self.total_steps) != (other.cost + other.total_steps):
+        # if self.cost != other.cost:
             return self.cost < other.cost
-        this_complains = sorted(self.complain_map, reverse=True)
-        other_complains = sorted(other.complain_map, reverse=True)
-        this_complains.remove(0) if 0 in this_complains else None
-        other_complains.remove(0) if 0 in other_complains else None
-        return "".join([str(i) for i in this_complains]) > "".join([str(i) for i in other_complains])
+        # this_complains = sorted(self.complain_map.values(), reverse=True)
+        # other_complains = sorted(other.complain_map.values(), reverse=True)
+        # this_complains.remove(0) if 0 in this_complains else None
+        # other_complains.remove(0) if 0 in other_complains else None
+        # return "".join([str(i) for i in this_complains]) < "".join([str(i) for i in other_complains])
 
 class UserPreferences:
     def __init__(self, userid, teams, blocked):
@@ -114,7 +116,7 @@ def solver(input_file):
        call "yield" to return that preliminary solution. Your program can continue yielding multiple times;
        our test program will take the last answer you 'yielded' once time expired.
     """
-    visited_states = []
+    # visited_states = []
 
     global USER_PREFERENCES
     read_user_preferences(input_file)
@@ -128,18 +130,18 @@ def solver(input_file):
 
     yield ({"assigned-groups": get_user_groups(min_group), "total-cost": min_cost})
 
-    fringe.put(PriorityElement(min_cost, initial_groups, complain_map))
+    fringe.put(PriorityElement(0,min_cost, initial_groups, complain_map))
 
     total_state_count = 0
     while not fringe.empty():
-        total_state_count += 1
         priority_elem:PriorityElement = fringe.get()
 
         for (succ, complain_map) in successors(priority_elem.groups, priority_elem.complain_map):
-            if check_visited(visited_states, succ): # TODO remove this
-                print("Duplicate state: " + str(succ) + " with predecessor: " + str(priority_elem.groups))
-            else:
-                visited_states.append(succ)
+            total_state_count += 1
+            # if check_visited(visited_states, succ): # TODO remove this
+            #     print("Duplicate state: " + str(succ) + " with predecessor: " + str(priority_elem.groups))
+            # else:
+            #     visited_states.append(succ)
 
             # Match the count to know if all the states are being generated.
             succ_cost = sum(complain_map.values())
@@ -148,11 +150,12 @@ def solver(input_file):
                 min_group = succ
                 min_state_number = total_state_count
                 print("Min state number: " + str(total_state_count))
+                if min_cost == 0:
+                    return {"assigned-groups": get_user_groups(min_group), "total-cost": min_cost}
                 yield({"assigned-groups": get_user_groups(min_group), "total-cost": min_cost})
-            fringe.put(PriorityElement(succ_cost, succ, complain_map))
+            fringe.put(PriorityElement(priority_elem.total_steps + 1, succ_cost, succ, complain_map))
 
     print("Total state count: " + str(total_state_count))
-    print("Total distinct states: " + str(len(visited_states)))
     print("Min State search value: " + str(min_state_number))
     yield({"assigned-groups": get_user_groups(min_group), "total-cost": min_cost})
 
