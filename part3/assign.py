@@ -136,9 +136,8 @@ def solver(input_file):
         priority_elem:PriorityElement = fringe.get()
 
         for (succ, complain_map) in successors(priority_elem.groups, priority_elem.complain_map):
-            if check_visited(visited_states, succ):
-                pass
-                # print("Duplicate state: " + str(succ) + " with predecessor: " + str(priority_elem.groups))
+            if check_visited(visited_states, succ): # TODO remove this
+                print("Duplicate state: " + str(succ) + " with predecessor: " + str(priority_elem.groups))
             else:
                 visited_states.append(succ)
 
@@ -155,41 +154,7 @@ def solver(input_file):
     print("Total state count: " + str(total_state_count))
     print("Total distinct states: " + str(len(visited_states)))
     print("Min State search value: " + str(min_state_number))
-    # print("Distinct states: " + "\n".join([str(state) for state in visited_states]))
     yield({"assigned-groups": get_user_groups(min_group), "total-cost": min_cost})
-
-    all_groups = find_all_groups(['djcran','sahmaini','sulagaop','fanjun','nthakurd','vkvats'])
-
-    for uni_gp in all_groups:
-        if len([1 for gp in uni_gp if len(gp) > 1]) == 0:
-            continue
-
-        found = False
-        for visited_state in visited_states:
-            if sum([1 for group in uni_gp if group in visited_state]) == len(uni_gp):
-                found = True
-                break
-        if not found:
-            print("State not generated: " + str(uni_gp))
-            break
-
-
-    # # Simple example. First we yield a quick solution
-    # yield({"assigned-groups": ["vibvats-djcran-zkachwal", "shah12", "vrmath"],
-    #            "total-cost" : 12})
-    #
-    # # Then we think a while and return another solution:
-    # time.sleep(10)
-    # yield({"assigned-groups": ["vibvats-djcran-zkachwal", "shah12-vrmath"],
-    #            "total-cost" : 10})
-    #
-    # # This solution will never befound, but that's ok; program will be killed eventually by the
-    # #  test script.
-    # while True:
-    #     pass
-    #
-    # yield({"assigned-groups": ["vibvats-djcran", "zkachwal-shah12-vrmath"],
-    #            "total-cost" : 9})
 
 if __name__ == "__main__":
     if(len(sys.argv) != 2):

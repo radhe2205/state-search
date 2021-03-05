@@ -36,13 +36,61 @@
 
 # Part 3
 ### 1. Problem Formulation:
+Find the groups of students which results in least complaints. On initial analysis, total number of groups of size less 
+than or equal to 3 from given 'n' students were calculated using python program.
+Following were the results.
+1 -> 1 |
+2 -> 2 |
+3 -> 5 |
+4 -> 14 |
+5 -> 46 |
+6 -> 166 |
+7 -> 652 |
+8 -> 2780 |
+9 -> 12644 |
+10 -> 61136 |
+11 -> 312676 |
+
+Total number of results increase factorially. So for large set of students, it will be exhaustive to search through all 
+possible combinations. 
+
+We have formulated the problem in following way:
+1) there is a basic initial state, which is used to generate next possible states. For our case this state is a set of 
+   groups where each individual person is present and no other person is part of group.
+2) To generate next successor states, every two groups are merged. The merge happens in such a way that the size doesnt 
+   exceed "three".
+3) For each of these next states, the cost(#complain) is calculated and inserted into the fringe. which acts as a priority.
+4) While searching through the states, if a state is reached, which has minimum #complaints, then it is yielded.
+
+
   ##### a. State space: 
-            All possible groupings of students
-  ##### b. Successor function: 
-            Add person to group based on preferences or replace based on not wanting to work with someone
-  ##### c. Edge weights: 
+            All possible groupings of students. We have calculated total number of groups possible with 'n' students and
+            it shows factorial growth in the number of distinct groups possible. Here are the results for first 11 numbers.
+            1 -> 1 
+            2 -> 2 
+            3 -> 5 
+            4 -> 14 
+            5 -> 46 
+            6 -> 166 
+            7 -> 652 
+            8 -> 2780 
+            9 -> 12644 
+            10 -> 61136 
+            11 -> 312676
+  ##### b. Initial state:
+            In the initial state, each group has only one person, that is the person himself. So in the beginning there
+            are n groups, if there are n students.
+  ##### c. Successor function: 
+            Following requirements were expected of the successor function.
+            * We should be able to generate all possible states, that are possible.
+            * A state should not be generated again and again. That is we should make sure that same state is not being 
+            generated again and again, this will make our seach faster. As the state space is already very exhaustive.
+
+            
+            
+  ##### d. Edge weights: 
             Cost of the groupings based on number of complaint emails
-  ##### d. Heuristic function: 
+  ##### e. Heuristic function: 
             None
 ### 2. How it works:
 ### 3. Problems faced and design decisions:
