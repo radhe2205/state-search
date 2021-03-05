@@ -64,11 +64,7 @@ class PriorityElem:
 
     def __lt__(self, other):
         if not ENABLE_HEURISTIC:
-            if self.current_state[0] == other.current_state[0] \
-                    and CITIES[self.current_state[2]].lat is not None \
-                    and CITIES[other.current_state[2]].lat is not None:
-                return get_distance_from_goal(self.current_state[2]) < get_distance_from_goal(other.current_state[2])
-
+            return self.current_state[0] < other.current_state[0]
         return self.current_state[0] + self.current_state[1] < other.current_state[0] + other.current_state[1]
 
 def read_cities():
@@ -125,7 +121,7 @@ def get_path_segments(segments):
 def get_path_for_segment_state(state):
     return get_path_segments(state[3])
 
-def successor_segment(city):
+def route_successor(city):
     return CITIES[city].paths
 
 def get_distance_from_goal(city):
@@ -158,6 +154,8 @@ def h_safe(city):
     return goal_distance/1000000
 
 def h_s(city, type):
+    if not ENABLE_HEURISTIC:
+        return 0
     if type == "segments":
         return h_segment(city)
     if type == "distance":
@@ -167,18 +165,24 @@ def h_s(city, type):
     if type == "safe":
         return h_safe(city)
 
-def insert_in_fringe(fringe, segment, previous_elem: PriorityElem, type):
+def insert_in_fringe(fringe, segment, previous_elem: PriorityElem, type, fringe_cities):
     f_s = previous_elem.current_state[0]
     path = previous_elem.current_state[3] + [segment]
-
+    heuristic_val = h_s(segment.dest, type)
+    edge_weight = 0
     if type == "segments":
-        fringe.put(PriorityElem((f_s + 1, h_s(segment.dest, type), segment.dest, path)))
+        edge_weight = 1
     if type == "distance":
-        fringe.put(PriorityElem((f_s + segment.length, h_s(segment.dest, type), segment.dest, path)))
+        edge_weight = segment.length
     if type == "time":
-        fringe.put(PriorityElem((f_s + segment.length/segment.speed, h_s(segment.dest, type), segment.dest, path)))
+        edge_weight = segment.length/segment.speed
     if type == "safe":
-        fringe.put(PriorityElem((f_s + get_accident_on_road_segment(segment), h_s(segment.dest, type), segment.dest, path)))
+        edge_weight = get_accident_on_road_segment(segment)
+
+    if segment.dest in fringe_cities and fringe_cities[segment.dest] < (f_s + edge_weight + heuristic_val):
+        return
+    fringe.put(PriorityElem((f_s + edge_weight, heuristic_val, segment.dest, path)))
+    return (f_s + edge_weight, heuristic_val)
 
 def get_route(start, end, cost):
 
@@ -208,17 +212,21 @@ def get_route(start, end, cost):
     fringe = PriorityQueue()
     fringe.put(PriorityElem((0, h_s(start, cost), start, [])))
 
-    visited_cities = [start]
+    closed_cities = set()
+    cities_in_fringe = {}
 
     while not fringe.empty():
         elem = fringe.get()
+        closed_cities.add(elem.current_state[2])
+        if elem.current_state[2] in cities_in_fringe:
+            del cities_in_fringe[elem.current_state[2]]
+
         if elem.current_state[2] == end:
             return get_path_for_segment_state(elem.current_state)
-        for segment in successor_segment(elem.current_state[2]):
-            if segment.dest in visited_cities:
+        for segment in route_successor(elem.current_state[2]):
+            if segment.dest in closed_cities:
                 continue
-            insert_in_fringe(fringe, segment, elem, cost)
-            visited_cities.append(segment.dest)
+            insert_in_fringe(fringe, segment, elem, cost, cities_in_fringe)
 
     return get_path_segments([])
 
