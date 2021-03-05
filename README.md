@@ -71,8 +71,8 @@
             is the distance/speed of that segment. In case of segment, it is always one. In case of safe, it is the accident
             expectation of that segment.
   ##### d. Heuristic function: TODO 
-            If two successor states have the same cost, then a heuristic is used to determine which successor has a smaller distance to the goal city based on the difference
-            between latitude and longitude. The successor with the smaller distance is the one chosen by the agent. 
+            In the initial implementation we tried using h(s) = 0, with best first approach. Since h(s) = 0 is consistent.
+            We can discard duplicate states.
 ### 2. How it works: TODO
             The program begins by placing the first state in the priority queue into the fringe. The program checks if the current state is the goal city. If it is, then the
             goal state is translated into route taken, total miles, total hours, and total accidents. If it is not the goal state, then each path (city) in the current state
