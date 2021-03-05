@@ -70,15 +70,17 @@
             fastest route, or safest route. In case of distance, it is the distnce of the segment. In case of time it 
             is the distance/speed of that segment. In case of segment, it is always one. In case of safe, it is the accident
             expectation of that segment.
-  ##### d. Heuristic function: TODO 
+  ##### d. Heuristic function:  
             In the initial implementation we tried using h(s) = 0, with best first approach. Since h(s) = 0 is consistent.
-            We can discard duplicate states.
-### 2. How it works: TODO
-            The program begins by placing the first state in the priority queue into the fringe. The program checks if the current state is the goal city. If it is, then the
-            goal state is translated into route taken, total miles, total hours, and total accidents. If it is not the goal state, then each path (city) in the current state
-            is checked to see if it has already been visited by the agent. If it has been visited before, then the program moves to the next path in the state. If the path has
-            not been visited previously, then it is added to the fringe as the cost function defined by the user. It is also added to the visited cities list to prevent
-            returning to the same location. The process continues until the goal city is found by the agent. 
+            As discussed during lectures, an algorithm is optimal if algorithm #3 is used with consistent heuristic. 
+            Since h(s) = 0 is always consistent, the algorithm finds optimal paths.             
+### 2. How it works: 
+            We maintain a separate variable named closed_cities, this variable stores the states that have already been 
+            explored. Which means it stores the states for which we have explored successors.
+            
+            Next we use algorithm #3 with replacing/discarding visited states as follows.
+            1) If a new successor state is in closed cities, then we discard that state.
+            2) If a new successor state is in fringe, then we replace that state.
 ### 3. Problems faced and design decisions:
 
 # Part 3
