@@ -19,14 +19,7 @@ class PriorityElement:
         self.groups = groups
         self.complain_map = complain_map
     def __lt__(self, other):
-        # if (self.cost + self.total_steps) != (other.cost + other.total_steps):
-        # if self.cost != other.cost:
-            return self.cost < other.cost
-        # this_complains = sorted(self.complain_map.values(), reverse=True)
-        # other_complains = sorted(other.complain_map.values(), reverse=True)
-        # this_complains.remove(0) if 0 in this_complains else None
-        # other_complains.remove(0) if 0 in other_complains else None
-        # return "".join([str(i) for i in this_complains]) < "".join([str(i) for i in other_complains])
+        return self.cost < other.cost
 
 class UserPreferences:
     def __init__(self, userid, teams, blocked):
@@ -97,12 +90,6 @@ def successors(state, complain_map):
 
     return new_states
 
-def check_visited(visited_states, current_state):
-    for visited_state in visited_states:
-        if sum([1 for group in current_state if group in visited_state]) == len(current_state):
-            return True
-    return False
-
 def solver(input_file):
     """
     1. This function should take the name of a .txt input file in the format indicated in the assignment.
@@ -116,8 +103,6 @@ def solver(input_file):
        call "yield" to return that preliminary solution. Your program can continue yielding multiple times;
        our test program will take the last answer you 'yielded' once time expired.
     """
-    # visited_states = []
-
     global USER_PREFERENCES
     read_user_preferences(input_file)
 
@@ -126,7 +111,6 @@ def solver(input_file):
     complain_map = {i[0]:calculate_cost(i[0], i) for i in initial_groups}
     min_cost = sum(complain_map.values())
     min_group = initial_groups
-    min_state_number = 0
 
     yield ({"assigned-groups": get_user_groups(min_group), "total-cost": min_cost})
 
@@ -138,26 +122,15 @@ def solver(input_file):
 
         for (succ, complain_map) in successors(priority_elem.groups, priority_elem.complain_map):
             total_state_count += 1
-            # if check_visited(visited_states, succ): # TODO remove this
-            #     print("Duplicate state: " + str(succ) + " with predecessor: " + str(priority_elem.groups))
-            # else:
-            #     visited_states.append(succ)
 
-            # Match the count to know if all the states are being generated.
             succ_cost = sum(complain_map.values())
             if succ_cost < min_cost:
                 min_cost = succ_cost
                 min_group = succ
-                min_state_number = total_state_count
-                print("Min state number: " + str(total_state_count))
                 if min_cost == 0:
                     return {"assigned-groups": get_user_groups(min_group), "total-cost": min_cost}
                 yield({"assigned-groups": get_user_groups(min_group), "total-cost": min_cost})
             fringe.put(PriorityElement(priority_elem.total_steps + 1, succ_cost, succ, complain_map))
-
-    print("Total state count: " + str(total_state_count))
-    print("Min State search value: " + str(min_state_number))
-    yield({"assigned-groups": get_user_groups(min_group), "total-cost": min_cost})
 
 if __name__ == "__main__":
     if(len(sys.argv) != 2):
