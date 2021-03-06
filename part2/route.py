@@ -39,23 +39,35 @@ class City:
     def add_road(self, segment: Segment):
         self.paths.append(segment)
 
-# Code start: Taken from https://stackoverflow.com/questions/19412462/getting-distance-between-two-points-based-on-latitude-longitude
+# Code start: Taken from https://janakiev.com/blog/gps-points-distance-python/ Shared by Hongxuan Zhai on QA community.
 from math import sin, cos, sqrt, atan2, radians
+import math
 def distance_lat_lng(lat_lng1, lat_lng2):
 
-    R = 6373.0
-    lat1 = radians(lat_lng1[0])
-    lon1 = radians(lat_lng1[1])
-    lat2 = radians(lat_lng2[0])
-    lon2 = radians(lat_lng2[1])
+    R = 3958.8
+    lat1, lon1 = lat_lng1
+    lat2, lon2 = lat_lng2
 
-    dlon = lon2 - lon1
-    dlat = lat2 - lat1
+    phi1, phi2 = math.radians(lat1), math.radians(lat2)
+    dphi = math.radians(lat2 - lat1)
+    dlambda = math.radians(lon2 - lon1)
 
-    a = sin(dlat / 2)**2 + cos(lat1) * cos(lat2) * sin(dlon / 2)**2
-    c = 2 * atan2(sqrt(a), sqrt(1 - a))
+    a = math.sin(dphi / 2) ** 2 + \
+        math.cos(phi1) * math.cos(phi2) * math.sin(dlambda / 2) ** 2
 
-    return R * c * 0.621371
+    return 2 * R * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    # lat1 = radians(lat_lng1[0])
+    # lon1 = radians(lat_lng1[1])
+    # lat2 = radians(lat_lng2[0])
+    # lon2 = radians(lat_lng2[1])
+    #
+    # dlon = lon2 - lon1
+    # dlat = lat2 - lat1
+    #
+    # a = sin(dlat / 2)**2 + cos(lat1) * cos(lat2) * sin(dlon / 2)**2
+    # c = 2 * atan2(sqrt(a), sqrt(1 - a))
+    #
+    # return R * c * 0.621371
 # Code end: Taken from https://stackoverflow.com/questions/19412462/getting-distance-between-two-points-based-on-latitude-longitude
 
 class PriorityElem:
@@ -124,22 +136,25 @@ def get_path_for_segment_state(state):
 def route_successor(city):
     return CITIES[city].paths
 
+def get_distance_in_cities(city1, city2):
+    return distance_lat_lng((CITIES[city1].lat, CITIES[city1].lng), (CITIES[city2].lat, CITIES[city2].lng))
+
 def get_distance_from_goal(city):
     if not ENABLE_HEURISTIC:
         return 0
     if city == GOAL_CITY:
         return 0
-    if CITIES[city].lat is not None and CITIES[city].lng is not None:
+    if CITIES[city].lat is not None or CITIES[city].lng is not None:
         return distance_lat_lng((CITIES[city].lat, CITIES[city].lng), (CITIES[GOAL_CITY].lat, CITIES[GOAL_CITY].lng))
     else:
-        max_goal_distance = 0
+        min_goal_distance = 1000000000
         for segment in CITIES[city].paths:
             if CITIES[segment.dest].lat is None or CITIES[segment.dest].lng is None:
                 continue
             consistency_distance = get_distance_from_goal(segment.dest) - segment.length
-            if consistency_distance > max_goal_distance:
-                max_goal_distance = consistency_distance
-        return max_goal_distance
+            if consistency_distance < min_goal_distance:
+                min_goal_distance = consistency_distance
+        return min_goal_distance
 
 def h_segment(city):
     goal_distance = get_distance_from_goal(city)
@@ -183,6 +198,13 @@ def insert_in_fringe(fringe, segment, previous_elem: PriorityElem, type, fringe_
         return
     fringe.put(PriorityElem((f_s + edge_weight, heuristic_val, segment.dest, path)))
     fringe_cities[segment.dest] = f_s + edge_weight + heuristic_val
+
+    # INCONSISTENCY DETECTION CODE.
+    # if (previous_elem.current_state[1] - edge_weight) > heuristic_val:
+    #     print("Consistency check failed for: " + previous_elem.current_state[2] + " for segment: " + segment.dest + " path name: " + segment.name)
+    #     print("previous h(s): " + str(previous_elem.current_state[1]) + " edge weight: " + str(edge_weight) + " current h: " + str(heuristic_val))
+    #     print(get_distance_from_goal(previous_elem.current_state[2]))
+    #     print(get_distance_from_goal(segment.dest))
     return (f_s + edge_weight, heuristic_val)
 
 def get_route(start, end, cost):
@@ -207,6 +229,10 @@ def get_route(start, end, cost):
     """
     read_cities()
     read_roads()
+
+    print(get_distance_in_cities("Vantage,_Washington", "Newark,_New_Jersey"))
+    print(get_distance_in_cities("George,_Washington", "Newark,_New_Jersey"))
+
     global GOAL_CITY
     GOAL_CITY = end
 
@@ -224,6 +250,7 @@ def get_route(start, end, cost):
 
         if elem.current_state[2] == end:
             return get_path_for_segment_state(elem.current_state)
+        prev_hs = elem.current_state[1]
         for segment in route_successor(elem.current_state[2]):
             if segment.dest in closed_cities:
                 continue
