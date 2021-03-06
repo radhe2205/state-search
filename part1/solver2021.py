@@ -297,10 +297,6 @@ if __name__ == "__main__":
     # start_state = make_moves(start_state, "D2 D2 D2 R2 R2 R2 R2 L4 R1 L2 D3 D3 U4 R3 L2 R3 L4 D5")
     # start_state = make_moves(start_state, "D2 D2 D2 R2 R2 R2 R2 R1 D1 D5 L4 U2 L2 D3 R3 D3 U4 L2 R3")
     # start_state = make_moves(start_state, "D2 D2 D2 R2 R2 R2 R2 R3 D3 U4 L2 R3 R1 D1 D5 L4 U2 L2 D3")
-    start_state = make_moves(start_state, "D2 D2 D2 R2 R2 R2 R2")
-
-    start_state[0] = 2
-    start_state[1] = 1
 
     print(printable_board(tuple(start_state)))
 

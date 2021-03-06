@@ -51,7 +51,11 @@
             through A*. We continue this exploration untill goal state is reached.
       
 ### 3. Problems faced and design decisions:
-            Figuring out minimum moves required by a tile to reach its goal position.
+            1) Figuring out minimum moves required by a tile to reach its goal position.
+            
+            2) To generate boards, We have created an extra function, which makes the move on the board and alters it. 
+            So for example if I make R1 move on the board, then the solution will have L1 move. 
+            Likewise If we make R1 D1 D3 move, then the correct solution will have L1 U1 U3 in the solution or less.   
             
       
 
@@ -80,9 +84,33 @@
             
             Next we use algorithm #3 with replacing/discarding visited states as follows.
             1) If a new successor state is in closed cities, then we discard that state.
-            2) If a new successor state is in fringe, then we replace that state.
-### 3. Problems faced and design decisions:
+            2) If a new successor state is already in fringe, then we replace that state in fringe, iff the new path 
+            found has less f(s) value.
+                2.1) As PriorityQueue implementation in python doesnt allow updation of an element, we do not update the
+                state in the fringe, instead, we are simply inserting the state in the fringe again. Since it is 
+                priority queue, the newly inserted state is explored first. After exploration, this state is added in 
+                closed_cities set. The duplicate state which is in fringe, when popped from the fringe is immediately 
+                discarded, because it is now in closed_cities.
 
+            As we know consistent heuristic(Even though h(s) = 0 always) with algorithm #3 is optimal. Our implementation 
+            finds the optimal path everytime.
+
+### 3. More improvements: 
+            We can use lat, lng provided in the dataset, to direct our search in a specific direction. This will explore
+            much lower number of states than previoud approach. In other way, we can supply 
+            h(s) = distance between lat,lng of current city and the target city. This approach reduces number of nodes 
+            explored significantly.
+            
+            However on exploring the solution with heuristic which used lat lng, we found that there were some inconsistencies
+            in the dataset. Example: https://inscribe.education/main/indianau/6754110229500553/questions/6749461749551022?backToListTab=conversations
+            In the route.py file, we have commented the code which detects inconsistencies. 
+            Search for "INCONSISTENCY DETECTION CODE" in route.py and uncomment the code to list the inconsistencies in the path segments.
+            1) Uncomment the code as stated above.
+            2) Set "ENABLE_HEURISTIC = True" to use heuristic function. However this returns inconsistent results.
+            
+            For now the Heuristic evaluation of states based on the lat, lng it turned off.
+### 4. Problems faced and design decisions:
+            * Inconsistencies in data. Which took a lot of time to figure out why we are getting suboptimal results.
 # Part 3
 ### 1. Problem Formulation:
 Find the groups of students which results in least complaints. On initial analysis, total number of groups of size less 
