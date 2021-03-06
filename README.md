@@ -199,10 +199,10 @@ We have formulated the problem in following way:
         number of complaints are explored first.  
         
 ### 3. Problems faced and design decisions:
-        Problems faced.
+        * Problems faced.
         Figuring out a successor function which generates unique state and doesn't repeat states.
         
-        Approaches tried:
+        * Approaches tried:
         When two states are equal, that is both states generate equal number of complaints. In this case we can process 
         any state first. However if we intelligently use another heuristic function on both the states, we can benefit by
         processing better state first. Recursively if the second heuristic also returns equal value for both states, then
