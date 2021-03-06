@@ -78,6 +78,7 @@ def is_goal(state):
 def get_cell_from_index(index):
     return (int(index/COLS), index%COLS)
 
+# This function determines the minimum moves required for cell1 to reach cell2, using the rules of the board.
 def get_manhatten_distance(cell1, cell2):
     # TODO: Validate this logic
     if cell1 == cell2:
@@ -134,9 +135,7 @@ def get_manhatten_distance(cell1, cell2):
 
     return min(min_distance, row_distance + col_distance)
 
-    # return min(abs(cell1[0] - cell2[0]), (min(cell1[0],cell2[0]) + ROWS - max(cell1[0],cell2[0])))\
-    #        + min(abs(cell1[1] - cell2[1]), (min(cell1[1],cell2[1]) + COLS - max(cell1[1],cell2[1])))
-
+# This function calculates the number of mismatched neighbours of a cell. Total neighbours of a cell are 4.
 def get_mismatches_for_cell(state, index):
     elem = state[index]
     col_mismatches = row_mismatches = 0
@@ -160,9 +159,11 @@ def get_mismatches_for_cell(state, index):
 
     return (row_mismatches, col_mismatches)
 
+# Sums all the mismatched neighbours of a cell.
 def get_total_mismatches(state):
     return sum([sum(get_mismatches_for_cell(state, i)) for i in range(ROWS * COLS)])
 
+# Sums all the mismatches and divides them by 8 and 10 respectively
 def get_mismatch_coefficient(state):
     col_mismatches = row_mismatches = 0
     for i in range(ROWS * COLS):
@@ -172,20 +173,15 @@ def get_mismatch_coefficient(state):
 
     return col_mismatches / (ROWS*2) + row_mismatches / (COLS*2)
 
-higher_counts = 0
-
 def get_h(state):
     global higher_counts
     manhatn =  max([get_manhatten_distance(i, state[i] - 1) for i in range(len(state))])
     # mismatches = get_mismatch_coefficient(state)
 
-    # if manhatn > mismatches:
-    #     higher_counts +=1
-    # else:
-    #     higher_counts -=1
-
     return manhatn
 
+# This function returns the count of tiles that are at max distance from their goal positions.
+# If there 4 nodes that are at 5 distance away and 2 nodes that are 7 distance away, then it returns 2.
 def get_max_distance_node_count(state):
     max_count = 0
     max_distance = 0
@@ -213,27 +209,18 @@ def solve(initial_board):
         initial_board = [j for i in initial_board for j in i]
 
     que = PriorityQueue()
-
-    # que.put((0, 0,initial_board, ""))
     que.put(FringeItem((0, initial_board, ""), (0, 0)))
 
     state_count = 1
 
-    total_hs = 0
-    count_hs = 0
-    max_hs = 0
-    min_hs = 500
     total_for_loop = 0
 
     while not que.empty():
 
-        if count_hs%1000 == 400:
-            print("Higher counts: " + str(higher_counts))
-            print("for loop counts: " + str(total_for_loop))
-            print("max_hs: " + str(max_hs))
-            print("min_hs: " + str(min_hs))
-            print("avg_hs: " + str(total_hs/count_hs))
-            print("compare stats: " + str(compare_count))
+        if total_for_loop%1000 == 400:
+            # print("for loop counts: " + str(total_for_loop))
+            # print("compare stats: " + str(compare_count))
+            pass
 
         state_count = state_count + 1
 
@@ -247,15 +234,11 @@ def solve(initial_board):
         for succ in successors(elem[1]):
             total_for_loop += 1
             a=get_h(succ[0])
-            count_hs+=1
-            total_hs+=a
-            max_hs=max(a,max_hs)
-            min_hs=min(a,min_hs)
 
-            fs = a + elem[0]
-            # que.put((fs, fs, succ[0], elem[3] + " " + succ[1]))
             que.put(FringeItem((elem[0] + 1, succ[0], elem[2] + " " + succ[1]), (elem[0] + 1 + a, get_total_mismatches(succ[0]))))
 
+# This function was written for testing purpose. This function  modifies the board. So we make 4 moves on perfect board,
+# then the modified board is solved. This prevents generating board by hand. Instead we let the program generate the board.
 def make_move(state, move):
     dir = move[0]
     num = int(move[1:]) - 1
@@ -272,8 +255,6 @@ def make_moves(state, moves):
     moves = moves.split(" ")
     for move in moves:
         state = make_move(state, move)
-        # print("--------------------")
-        # print(printable_board(tuple(state)))
     return state
 
 # Please don't modify anything below this line
@@ -293,10 +274,6 @@ if __name__ == "__main__":
     print("Start state: \n" +printable_board(tuple(start_state)))
 
     print("Solving...")
-
-    # start_state = make_moves(start_state, "D2 D2 D2 R2 R2 R2 R2 L4 R1 L2 D3 D3 U4 R3 L2 R3 L4 D5")
-    # start_state = make_moves(start_state, "D2 D2 D2 R2 R2 R2 R2 R1 D1 D5 L4 U2 L2 D3 R3 D3 U4 L2 R3")
-    # start_state = make_moves(start_state, "D2 D2 D2 R2 R2 R2 R2 R3 D3 U4 L2 R3 R1 D1 D5 L4 U2 L2 D3")
 
     print(printable_board(tuple(start_state)))
 

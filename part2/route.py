@@ -16,7 +16,7 @@ CITIES = {}
 GOAL_CITY = ""
 MAX_SEGMENT_LENGTH = 0
 MAX_SPEED_HIGHWAY = 0
-ENABLE_HEURISTIC = False
+ENABLE_HEURISTIC = False # if set to false, then h(s) = 0, which is also consistent.
 
 class Segment:
     def __init__(self, dest, length, speed, name):
@@ -56,18 +56,6 @@ def distance_lat_lng(lat_lng1, lat_lng2):
         math.cos(phi1) * math.cos(phi2) * math.sin(dlambda / 2) ** 2
 
     return 2 * R * math.atan2(math.sqrt(a), math.sqrt(1 - a))
-    # lat1 = radians(lat_lng1[0])
-    # lon1 = radians(lat_lng1[1])
-    # lat2 = radians(lat_lng2[0])
-    # lon2 = radians(lat_lng2[1])
-    #
-    # dlon = lon2 - lon1
-    # dlat = lat2 - lat1
-    #
-    # a = sin(dlat / 2)**2 + cos(lat1) * cos(lat2) * sin(dlon / 2)**2
-    # c = 2 * atan2(sqrt(a), sqrt(1 - a))
-    #
-    # return R * c * 0.621371
 # Code end: Taken from https://stackoverflow.com/questions/19412462/getting-distance-between-two-points-based-on-latitude-longitude
 
 class PriorityElem:
@@ -113,6 +101,7 @@ def get_accident_on_road_segment(segment: Segment):
         return segment.length / 1000000
     return segment.length * 2 / 1000000
 
+# This function generates the output from the path segments that have been found.
 def get_path_segments(segments):
     route_taken = []
     total_miles = 0
@@ -168,6 +157,7 @@ def h_safe(city):
     goal_distance = get_distance_from_goal(city)
     return goal_distance/1000000
 
+# Calculates the lat lng distance and tries to estimate the cost.
 def h_s(city, type):
     if not ENABLE_HEURISTIC:
         return 0
@@ -230,9 +220,6 @@ def get_route(start, end, cost):
     read_cities()
     read_roads()
 
-    print(get_distance_in_cities("Vantage,_Washington", "Newark,_New_Jersey"))
-    print(get_distance_in_cities("George,_Washington", "Newark,_New_Jersey"))
-
     global GOAL_CITY
     GOAL_CITY = end
 
@@ -257,17 +244,6 @@ def get_route(start, end, cost):
             insert_in_fringe(fringe, segment, elem, cost, cities_in_fringe)
 
     return get_path_segments([])
-
-    # route_taken = [("Martinsville,_Indiana","IN_37 for 19 miles"), # 52
-    #                ("Jct_I-465_&_IN_37_S,_Indiana","IN_37 for 25 miles"), #52
-    #                ("Indianapolis,_Indiana","IN_37 for 7 miles")] #30
-    #
-    # return {"total-segments" : len(route_taken),
-    #         "total-miles" : 51,
-    #         "total-hours" : 1.07949,
-    #         "total-expected-accidents" : 0.000051,
-    #         "route-taken" : route_taken}
-
 
 # Please don't modify anything below this line
 #
